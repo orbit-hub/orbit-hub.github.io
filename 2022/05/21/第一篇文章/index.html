@@ -4,15 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>第一篇文章 | Hexo</title>
+  <title>MySQL的LIMIT | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="article">
-<meta property="og:title" content="第一篇文章">
+  <meta name="description" content="server层和存储引擎层 server层负责处理一些通用的事情，诸如连接管理、SQL语法解析、分析执行计划之类的东西  存储引擎层负责具体的数据存储，诸如数据是存储到文件上还是内存里，具体的存储格式是什 么样的之类的。我们现在基本都使用InnoDB存储引擎，其他存储引擎使用的非常少了，所以我们也就不涉及其他存储引擎了。  MySQL是在server层准备向客户端发送记录的时候才会去处理LIMIT">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL的LIMIT">
 <meta property="og:url" content="http://example.com/2022/05/21/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="server层和存储引擎层 server层负责处理一些通用的事情，诸如连接管理、SQL语法解析、分析执行计划之类的东西  存储引擎层负责具体的数据存储，诸如数据是存储到文件上还是内存里，具体的存储格式是什 么样的之类的。我们现在基本都使用InnoDB存储引擎，其他存储引擎使用的非常少了，所以我们也就不涉及其他存储引擎了。  MySQL是在server层准备向客户端发送记录的时候才会去处理LIMIT">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-21T13:57:57.000Z">
-<meta property="article:modified_time" content="2022-05-21T13:57:57.312Z">
+<meta property="article:modified_time" content="2022-05-22T09:59:16.295Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -85,7 +87,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      第一篇文章
+      MySQL的LIMIT
     </h1>
   
 
@@ -93,11 +95,19 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        
+        <h3 id="server层和存储引擎层"><a href="#server层和存储引擎层" class="headerlink" title="server层和存储引擎层"></a>server层和存储引擎层</h3><ul>
+<li>server层负责处理一些通用的事情，诸如连接管理、SQL语法解析、分析执行计划之类的东西 </li>
+<li>存储引擎层负责具体的数据存储，诸如数据是存储到文件上还是内存里，具体的存储格式是什 么样的之类的。我们现在基本都使用InnoDB存储引擎，其他存储引擎使用的非常少了，所以我们也就不涉及其他存储引擎了。</li>
+</ul>
+<p><strong>MySQL是在server层准备向客户端发送记录的时候才会去处理LIMIT子句中的内容。</strong> 先在二级索引去找，再回表得到完整记录，返回给server层，server层发现limit 要求 他会做一个统计是第几条，存储引擎不断在二级索引向下找，并且回表，再将完整数据返回给server层，成本太大，不如全表扫描+filesort快</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t, (<span class="keyword">SELECT</span> id <span class="keyword">FROM</span> t <span class="keyword">ORDER</span> <span class="keyword">BY</span> key1 LIMIT <span class="number">5000</span>, <span class="number">1</span>) <span class="keyword">AS</span> d </span><br><span class="line"><span class="keyword">WHERE</span> t.id <span class="operator">=</span> d.id;</span><br></pre></td></tr></table></figure>
+
+<p>这样， <code>SELECT id FROM t ORDER BY key1 LIMIT 5000, 1</code>作为一个子查询单独存在，由于该子查询的查询列表只有一个 <code>id</code> 列，MySQL可以通过仅扫描二级索引<code>idx_key1</code>执行该子查询，然后再根据子查询中获得到的主键值去表t中进行查找。 就可以省掉回表的成本</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/05/21/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/" data-id="cl3fxrco300006gv11s7pctie" data-title="第一篇文章" class="article-share-link">Share</a>
+      <a data-url="http://example.com/2022/05/21/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/" data-id="cl3fxrco300006gv11s7pctie" data-title="MySQL的LIMIT" class="article-share-link">Share</a>
       
       
       
@@ -148,7 +158,7 @@
       <ul>
         
           <li>
-            <a href="/2022/05/21/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/">第一篇文章</a>
+            <a href="/2022/05/21/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/">MySQL的LIMIT</a>
           </li>
         
           <li>
